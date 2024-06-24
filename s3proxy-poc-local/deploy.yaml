@@ -1,0 +1,32 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: s3proxy
+  namespace: demo
+  labels:
+    app: s3proxy
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: s3proxy
+  template:
+    metadata:
+      labels:
+        app: s3proxy
+    spec:
+      containers:
+        - name: s3proxyy
+          image: andrewgaul/s3proxy
+          ports:
+          - name: s3
+            containerPort: 80
+          envFrom:
+          - secretRef:
+              name: s3proxy
+          resources:
+            requests:
+              cpu: 1
+              memory: "1Gi"
+            limits:
+              memory: "1Gi"

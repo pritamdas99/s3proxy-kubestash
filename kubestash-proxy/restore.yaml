@@ -1,0 +1,21 @@
+apiVersion: core.kubestash.com/v1alpha1
+kind: RestoreSession
+metadata:
+  name: solr-restore
+  namespace: demo
+spec:
+  target:
+    name: solr-combined
+    namespace: demo
+    apiGroup: kubedb.com
+    kind: Solr
+  dataSource:
+    snapshot: solr-s3-repo-solr-backup-solr-frequent-backup-1718972820
+    # repository: solr-s3-repo
+  addon:
+    name: solr
+    tasks:
+    - name: logical-backup-restore
+    jobTemplate:
+      spec:
+        serviceAccountName: demo

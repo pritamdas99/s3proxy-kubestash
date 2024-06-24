@@ -1,0 +1,43 @@
+apiVersion: core.kubestash.com/v1alpha1
+kind: BackupConfiguration
+metadata:
+  name: solr-backup
+  namespace: demo
+spec:
+  # paused: true
+  target:
+    apiGroup: kubedb.com
+    kind: Solr
+    namespace: demo
+    name: solr-combined
+  backends:
+  - name: s3-backend
+    storageRef:
+      namespace: demo
+      name: s3-proxy-store
+    retentionPolicy:
+      name: retention-policy
+      namespace: demo
+  sessions:
+  - name: solr-frequent-backup
+    sessionHistoryLimit: 10
+    scheduler:
+      schedule: "*/1 * * * *"
+      successfulJobsHistoryLimit: 1
+      failedJobsHistoryLimit: 1
+      jobTemplate:
+        backoffLimit: 1
+    repositories:
+    - name: solr-s3-repo
+      backend: s3-backend
+      directory: /ton
+      # encryptionSecret:
+      #   name: encry-secret # some addon may not support encryption
+      #   namespace: demo
+    addon:
+      name: solr
+      tasks:
+      - name: logical-backup
+      jobTemplate:
+        spec:
+          serviceAccountName: demo

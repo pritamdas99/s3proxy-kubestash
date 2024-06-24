@@ -1,0 +1,19 @@
+apiVersion: storage.kubestash.com/v1alpha1
+kind: BackupStorage
+metadata:
+  name: s3-proxy-store
+  namespace: demo
+spec:
+  storage:
+    provider: s3
+    s3:                                                              # eg. s3, gcs, azure, swift, b2 
+      endpoint: http://proxy-svc.demo.svc:80
+      bucket: solrbackup
+      prefix: yyy
+      region: us-east-1
+      secretName: s3-proxy
+  usagePolicy:
+    allowedNamespaces:
+      from: All
+  default: true 
+  deletionPolicy: Delete                                           # eg Delete, Wipeout

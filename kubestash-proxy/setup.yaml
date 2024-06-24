@@ -1,0 +1,95 @@
+apiVersion: addons.kubestash.com/v1alpha1
+kind: Function
+metadata:
+  name: solr-backup
+spec:
+  image: pritam99/solr-plugin:n1
+  args:
+  - backup
+  - --scratch-dir=/tmp
+  - --namespace=${namespace:=default}
+  - --backupsession=${backupSession:=}
+
+---
+
+apiVersion: addons.kubestash.com/v1alpha1
+kind: Function
+metadata:
+  name: solr-restore
+spec:
+  image: pritam99/solr-plugin:n1
+  args:
+  - restore
+  - --scratch-dir=${scratchDir:=/tmp}
+  - --namespace=${namespace:=default}
+  - --restoresession=${restoreSession:=}
+  - --snapshot=${snapshot:=}
+
+---
+
+apiVersion: addons.kubestash.com/v1alpha1
+kind: Addon
+metadata:
+  name: solr
+  namespace: demo
+spec:
+  backupTasks:
+  - name: logical-backup
+    function: solr-backup
+    driver: Solr #Restic, WalG
+    executor: Job #Job, Sidecar, EphemeralContainer, MultiLevelJob
+    singleton: true
+    parameters:
+    - name: args
+      usage: Specifies the database arguments which implies the indices which must be avoided while backup
+      required: false
+      default: "--match=^(?![.])(?!apm-agent-configuration)(?!kubedb-system).+"
+    # - name: interimDataDir
+    #   usage: Specifes the interim directory which stores the indices temporarily before backup
+    #   required: false
+    #   default: "/kubestash-interim-volume/tmp"
+    # volumeTemplate:
+    # - name: interim-volume
+    #   source:
+    #     volumeClaimTemplate:
+    #       metadata:
+    #         name: interim-volume-claim-template
+    #       spec:
+    #         accessModes: ["ReadWriteOnce"]
+    #         storageClassName: "standard"
+    #         resources:
+    #           requests:
+    #             storage: 1Gi
+    # volumeMounts:
+    # - name: interim-volume
+    #   mountPath: /kubestash-interim-volume
+  restoreTasks:
+  - name: logical-backup-restore
+    function: solr-restore
+    driver: Solr
+    executor: Job
+    singleton: true
+    parameters:
+    - name: args
+      usage: Specifies the database arguments which implies the indices which must be avoided while restore
+      required: false
+      default: "--match=^(?![.])(?!apm-agent-configuration)(?!kubedb-system).+"
+    # - name: interimDataDir
+    #   usage: Specifes the interim directory which stores the indices temporarily before restore
+    #   required: false
+    #   default: "/kubestash-interim-volume/tmp"
+    # volumeTemplate:
+    # - name: interim-volume
+    #   source:
+    #     volumeClaimTemplate:
+    #       metadata:
+    #         name: interim-volume-claim-template
+    #       spec:
+    #         accessModes: ["ReadWriteOnce"]
+    #         storageClassName: "standard"
+    #         resources:
+    #           requests:
+    #             storage: 1Gi
+    # volumeMounts:
+    # - name: interim-volume
+    #   mountPath: /kubestash-interim-volume
